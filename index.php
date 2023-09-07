@@ -15,7 +15,14 @@
 </head>
 <body>
 <h1 style="text-align: center">My music list</h1>
-<span id="duplicatefiles" ></span>
+<table id="matchWordsTable" style="width: 100%; display: none">
+    <thead>
+    <tr><th>Matched Words</th><th>Matched Count</th></tr>
+    </thead>
+    <tbody id="matchWordsTableBody">
+
+    </tbody>
+</table>
 <table id="musicTable" style="width: 100%">
     <thead>
     <tr><th>Name</th><th>Modified Date</th><th>Size</th></tr>
@@ -51,15 +58,20 @@
 <!--Searching duplicate words in the music list-->
 <script>
     var previousSearchedWords=[]
-    var outputDiv=document.getElementById("duplicatefiles")
+    var matchedWordOutPutTableBody=document.getElementById("matchWordsTableBody")
     var fileCounter=0
     var matchCount=0
     var musiclist=[<?php echo $fileslists?>]
     function ifThisWordUsedPreviously(word){
-        for(var i=0;i<previousSearchedWords;i++){
-            if(previousSearchedWords[i]==word){
+        console.log(word)
+        for(var j=0;j<previousSearchedWords.length;j++){
+            if(previousSearchedWords[j]==word){
+                console.log("Matched "+previousSearchedWords[j]+" "+word)
                 return true
                 break
+            }
+            else{
+                console.log("NotMatched "+previousSearchedWords[j]+" "+word)
             }
         }
         return false
@@ -68,25 +80,41 @@
         var data=musiclist[fileCounter].split(" ")
         for(var i=0;i<data.length;i++){
             matchCount=0
-            if(!ifThisWordUsedPreviously(data[i]))
-            {
-                musiclist.forEach(name=>{
-                    if(i+1<data.length){
-                        if(name.split(data[i]+" "+data[i+1]).length>1){
+            if(i+1<data.length){
+                var searchWord=data[i]+" "+data[i+1]
+                if(!ifThisWordUsedPreviously(searchWord))
+                {
+                    musiclist.forEach(name=>{
+                        if(name.split(searchWord).length>1){
                             matchCount++
                         }
+                    })
+                    if(matchCount>1){
+                        matchedWordOutPutTableBody.innerHTML+="<tr><td>"+searchWord+"</td><td> "+matchCount+"</td></tr> "
                     }
-
-                })
-                if(matchCount>1){
-                    outputDiv.innerText+=data[i]+" "+data[i+1]+"("+matchCount+") "
+                    previousSearchedWords.push(searchWord)
                 }
-                previousSearchedWords.push(data)
             }
         }
         fileCounter++
         if(fileCounter<musiclist.length){
             setTimeout(filesNameCompare,5)
+        }
+        else{
+            document.getElementById("matchWordsTable").style.display=""
+            $('#matchWordsTable').DataTable(
+                {
+                    lengthMenu:[20,30,40,50],
+                    autoWidth: false,
+                    columnDefs: [
+                        {
+                            targets: ['_all'],
+                            className: 'mdc-data-table__cell',
+                        },
+                    ],
+                    order:[[ 1, "desc" ]]
+                }
+            );
         }
     }
     filesNameCompare()
@@ -105,6 +133,7 @@
                 ],
             }
         );
+
     });
 </script>
 </html>
