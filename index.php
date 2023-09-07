@@ -15,6 +15,19 @@
 </head>
 <body>
 <h1 style="text-align: center">My music list</h1>
+<!--Skip words Ui start-->
+<button id="addSkipWordsButton" onclick="showSkipWordsDiv()" style="position: absolute;right: 2%">Add skip words for search</button>
+<div id="SkipWordsDiv" style="position: absolute;left: 50%;top: 50%;transform: translate(-50%, -50%);background: rebeccapurple;padding: 20px;display: none">
+    <button onclick="hideSkipWordsDiv()" style="position: relative;right: -79%"><img src="icons/close-button.png"></button>
+    <h2 style="
+    padding: 0;
+    margin: 0;
+    margin-bottom: 12px;
+">Input the word</h2>
+    <input id="skipWordsInput" type="text"><br>
+    <button onclick="addSkipWords(skipWordsInput.value)">Submit</button>
+</div>
+<!--Skip words Ui end-->
 <span id="matchingNotice"></span>
 <table id="matchWordsTable" style="width: 100%; display: none">
     <thead>
@@ -54,21 +67,56 @@
     ?>
     </tbody>
 </table>
-<div id="SkipWordsDiv" style="position: absolute;left: 50%;top: 50%;transform: translate(-50%, -50%);background: rebeccapurple;padding: 20px">
-    <button style="position: relative;right: -79%"><img src="icons/close-button.png"></button>
-    <h2 style="
-    padding: 0;
-    margin: 0;
-    margin-bottom: 12px;
-">Input the word</h2>
-    <input type="text"><br>
-    <button>Submit</button>
-</div>
+
 </body>
+<!--Skip Words UI Script-->
+<script>
+    var noticeTimeOut
+    var skipWordsDiv=document.getElementById("SkipWordsDiv"),
+        skipWordsShowButton=document.getElementById("addSkipWordsButton"),
+        skipWordsInput=document.getElementById("skipWordsInput")
+    function showSkipWordsDiv(){
+        skipWordsDiv.style.display=""
+        skipWordsShowButton.style.display="none"
+    }
+    function hideSkipWordsDiv(){
+        skipWordsDiv.style.display="none"
+        skipWordsShowButton.style.display=""
+    }
+    function addSkipWords(word){
+        var previousWords=localStorage.getItem("skipWords")
+        if(previousWords==null){
+            previousWords=""
+            localStorage.setItem("skipWords",previousWords+word)
+        }
+        else{
+            localStorage.setItem("skipWords",previousWords+"###"+word)
+        }
+        showNotice("Added skip word - "+word)
+    }
+    function showNotice(text){
+        if(noticeTimeOut!=null){
+            clearTimeout(noticeTimeOut)
+        }
+        matchingNoticeSpan.innerText=text
+        matchingNoticeSpan.style.display=""
+        noticeTimeOut=setTimeout(function (){
+            matchingNoticeSpan.style.display="none"
+        },2000)
+        console.log(text)
+    }
+</script>
 <!--Searching duplicate words in the music list-->
 <script>
 //    You can add words in the list to skip them
     var previousSearchedWords=[]
+    var previousWords=localStorage.getItem("skipWords")
+    if(previousWords!=null&&previousWords!=""){
+        let previousWordsData=previousWords.split("###")
+        previousWordsData.forEach(word=>{
+            previousSearchedWords.push(word)
+        })
+    }
     var matchedWordOutPutTableBody=document.getElementById("matchWordsTableBody")
     var fileCounter=0
     var matchCount=0
@@ -78,12 +126,8 @@
         console.log(word)
         for(var j=0;j<previousSearchedWords.length;j++){
             if(previousSearchedWords[j]==word){
-                console.log("Matched "+previousSearchedWords[j]+" "+word)
                 return true
                 break
-            }
-            else{
-                console.log("NotMatched "+previousSearchedWords[j]+" "+word)
             }
         }
         return false
@@ -114,6 +158,7 @@
             setTimeout(filesNameCompare,1)
         }
         else{
+            matchingNoticeSpan.style.display="none"
             document.getElementById("matchWordsTable").style.display=""
             $('#matchWordsTable').DataTable(
                 {
@@ -128,7 +173,6 @@
                     order:[[ 1, "desc" ]]
                 }
             );
-            matchCount.style.display="none"
         }
     }
     filesNameCompare()
