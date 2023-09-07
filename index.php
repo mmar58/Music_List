@@ -15,6 +15,7 @@
 </head>
 <body>
 <h1 style="text-align: center">My music list</h1>
+<span id="matchingNotice"></span>
 <table id="matchWordsTable" style="width: 100%; display: none">
     <thead>
     <tr><th>Matched Words</th><th>Matched Count</th></tr>
@@ -53,14 +54,25 @@
     ?>
     </tbody>
 </table>
-
+<div id="SkipWordsDiv" style="position: absolute;left: 50%;top: 50%;transform: translate(-50%, -50%);background: rebeccapurple;padding: 20px">
+    <button style="position: relative;right: -79%"><img src="icons/close-button.png"></button>
+    <h2 style="
+    padding: 0;
+    margin: 0;
+    margin-bottom: 12px;
+">Input the word</h2>
+    <input type="text"><br>
+    <button>Submit</button>
+</div>
 </body>
 <!--Searching duplicate words in the music list-->
 <script>
+//    You can add words in the list to skip them
     var previousSearchedWords=[]
     var matchedWordOutPutTableBody=document.getElementById("matchWordsTableBody")
     var fileCounter=0
     var matchCount=0
+    var matchingNoticeSpan=document.getElementById("matchingNotice")
     var musiclist=[<?php echo $fileslists?>]
     function ifThisWordUsedPreviously(word){
         console.log(word)
@@ -77,6 +89,7 @@
         return false
     }
     function filesNameCompare(){
+        matchingNoticeSpan.innerText="Done "+fileCounter+" of "+musiclist.length
         var data=musiclist[fileCounter].split(" ")
         for(var i=0;i<data.length;i++){
             matchCount=0
@@ -98,7 +111,7 @@
         }
         fileCounter++
         if(fileCounter<musiclist.length){
-            setTimeout(filesNameCompare,5)
+            setTimeout(filesNameCompare,1)
         }
         else{
             document.getElementById("matchWordsTable").style.display=""
@@ -115,6 +128,7 @@
                     order:[[ 1, "desc" ]]
                 }
             );
+            matchCount.style.display="none"
         }
     }
     filesNameCompare()
